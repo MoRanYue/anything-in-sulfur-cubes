@@ -1,4 +1,4 @@
-version = "0.3.1";
+version = "0.4.0";
 mcver = "26.2-pre-4";
 
 module.exports = {
