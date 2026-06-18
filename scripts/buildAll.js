@@ -7,6 +7,9 @@ try {
   console.log("Running buildResourcePack...");
   execSync("npm run buildResourcePack", { stdio: "inherit" });
 
+  console.log("Running buildDocs...");
+  execSync("npm run buildDocs", { stdio: "inherit" });
+
   console.log("Build complete!");
 } catch (error) {
   process.exitCode = 1;

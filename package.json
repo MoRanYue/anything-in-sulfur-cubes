@@ -20,6 +20,7 @@
     "buildDatapack": "node scripts/buildDatapack.js",
     "buildResourcePack": "node scripts/buildResourcePack.js",
     "buildTestDatapack": "node scripts/buildTestDatapack.js",
+    "buildDocs": "node scripts/buildDocs.js",
     "clean": "node -e \"require('node:fs').rmSync('build',{recursive:true,force:true})\"",
     "build": "node scripts/build.js",
     "buildAll": "node scripts/buildAll.js"
