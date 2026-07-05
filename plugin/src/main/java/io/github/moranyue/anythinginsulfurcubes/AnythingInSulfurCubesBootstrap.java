@@ -258,4 +258,23 @@ public class AnythingInSulfurCubesBootstrap implements PluginBootstrap {
     private static void add(String archetype, String... items) {
         ARCHETYPE_ITEMS.computeIfAbsent(archetype, k -> new LinkedHashSet<>()).addAll(Arrays.asList(items));
     }
+
+    /**
+     * Checks whether a given item name (lowercase, e.g. "cactus", "glass") has
+     * an archetype mapping registered by this bootstrap.
+     * <p>
+     * Used by {@link io.github.moranyue.anythinginsulfurcubes.listener.SulfurCubeListener}
+     * to determine if a player-held item can be placed into a sulfur cube.
+     *
+     * @param itemName the Minecraft item ID in lowercase (e.g. "cactus", "oak_log")
+     * @return true if the item has an archetype mapping
+     */
+    public static boolean hasArchetype(String itemName) {
+        for (Set<String> items : ARCHETYPE_ITEMS.values()) {
+            if (items.contains(itemName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

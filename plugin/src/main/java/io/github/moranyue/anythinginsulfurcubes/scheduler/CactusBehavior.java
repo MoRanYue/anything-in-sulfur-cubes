@@ -4,6 +4,8 @@ import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesPlugin;
 import io.github.moranyue.anythinginsulfurcubes.config.PluginConfig;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.SulfurCube;
@@ -44,10 +46,17 @@ public class CactusBehavior extends AbstractTickBehavior {
             if (equipment.getItem(EquipmentSlot.BODY).getType() != CACTUS) continue;
 
             // Damage nearby living entities (excluding the cube itself)
+            // Uses DamageType.CACTUS instead of entity attack to match the original
+            // datapack behavior: 'damage @s 1 cactus' uses the cactus damage type which
+            // affects all entities including players. Entity attack damage (the default
+            // when passing an Entity source to damage()) may be blocked by game mechanics
+            // such as PvP settings, game mode checks, or invulnerability ticks against
+            // non-hostile mob attacks.
+            DamageSource cactusDamageSource = DamageSource.builder(DamageType.CACTUS).build();
             List<Entity> nearby = cube.getNearbyEntities(range, range, range);
             for (Entity nearbyEntity : nearby) {
                 if (nearbyEntity instanceof LivingEntity living) {
-                    living.damage(damage, cube);
+                    living.damage(damage, cactusDamageSource);
                 }
             }
         }

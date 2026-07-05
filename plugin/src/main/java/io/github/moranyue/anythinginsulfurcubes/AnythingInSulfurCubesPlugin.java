@@ -5,7 +5,6 @@ import io.github.moranyue.anythinginsulfurcubes.listener.SulfurCubeListener;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.CactusBehavior;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.CreakingHeartBehavior;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.PotentSulfurBehavior;
-import io.github.moranyue.anythinginsulfurcubes.scheduler.TransparencyNotifyBehavior;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,9 +14,10 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Allows players to put nearly any block in Sulfur Cubes,
  * with each block having fitting properties and custom behaviors.
  * <p>
- * Uses a PlayerInteractEntityEvent listener to bypass vanilla's
- * sulfur_cube_swallowable item tag check, allowing any block
- * with an archetype mapping in config.yml to be placed in a sulfur cube.
+ * Block-to-archetype mappings are registered during the bootstrap phase
+ * via {@link io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesBootstrap}
+ * using the registry compose event system, which directly modifies the
+ * vanilla sulfur cube archetype item sets.
  */
 public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
 
@@ -25,7 +25,6 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
     private CactusBehavior cactusBehavior;
     private CreakingHeartBehavior creakingHeartBehavior;
     private PotentSulfurBehavior potentSulfurBehavior;
-    private TransparencyNotifyBehavior transparencyNotifyBehavior;
 
     @Override
     public void onEnable() {
@@ -33,7 +32,8 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
         this.pluginConfig = new PluginConfig(this);
         this.pluginConfig.loadConfig();
 
-        // Register event listeners (bypasses vanilla tag check)
+        // Register event listener (bypasses vanilla sulfur_cube_swallowable tag
+        // by calling NMS equipItem() directly for any block with an archetype mapping)
         registerListeners();
 
         // Start scheduled behaviors
@@ -48,14 +48,13 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
         if (cactusBehavior != null) cactusBehavior.cancel();
         if (creakingHeartBehavior != null) creakingHeartBehavior.cancel();
         if (potentSulfurBehavior != null) potentSulfurBehavior.cancel();
-        if (transparencyNotifyBehavior != null) transparencyNotifyBehavior.cancel();
 
         getLogger().info("Anything in Sulfur Cubes disabled.");
     }
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(
-            new SulfurCubeListener(this, pluginConfig), this);
+            new SulfurCubeListener(), this);
     }
 
     private void startBehaviors() {
@@ -73,11 +72,6 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
             potentSulfurBehavior = new PotentSulfurBehavior(this, pluginConfig);
             potentSulfurBehavior.start();
         }
-
-        if (pluginConfig.isTransparencyNotifyEnabled()) {
-            transparencyNotifyBehavior = new TransparencyNotifyBehavior(this, pluginConfig);
-            transparencyNotifyBehavior.start();
-        }
     }
 
     /**
@@ -89,7 +83,6 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
         if (cactusBehavior != null) cactusBehavior.cancel();
         if (creakingHeartBehavior != null) creakingHeartBehavior.cancel();
         if (potentSulfurBehavior != null) potentSulfurBehavior.cancel();
-        if (transparencyNotifyBehavior != null) transparencyNotifyBehavior.cancel();
         // Restart with new config
         startBehaviors();
         getLogger().info("Configuration reloaded.");

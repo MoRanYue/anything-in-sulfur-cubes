@@ -1,7 +1,6 @@
 package io.github.moranyue.anythinginsulfurcubes.listener;
 
-import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesPlugin;
-import io.github.moranyue.anythinginsulfurcubes.config.PluginConfig;
+import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesBootstrap;
 import net.minecraft.world.entity.monster.cubemob.SulfurCube;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Entity;
@@ -22,16 +21,12 @@ import org.bukkit.inventory.ItemStack;
  * {@code minecraft:sulfur_cube_swallowable} item tag. This listener
  * bypasses that check by cancelling the vanilla interaction and
  * directly calling NMS {@code SulfurCube.equipItem()}.
+ * <p>
+ * Which items are acceptable is determined by the bootstrap-phase
+ * archetype registry (see {@link AnythingInSulfurCubesBootstrap#hasArchetype}),
+ * not by a runtime config file.
  */
 public class SulfurCubeListener implements Listener {
-
-    private final AnythingInSulfurCubesPlugin plugin;
-    private final PluginConfig config;
-
-    public SulfurCubeListener(AnythingInSulfurCubesPlugin plugin, PluginConfig config) {
-        this.plugin = plugin;
-        this.config = config;
-    }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
@@ -56,13 +51,13 @@ public class SulfurCubeListener implements Listener {
             return;
         }
 
-        // Check if item has an archetype mapping in our config
-        String archetype = config.getArchetype(itemInHand.getType());
-        if (archetype == null || archetype.isEmpty()) {
+        // Check if item has an archetype mapping in the bootstrap registry
+        String itemName = itemInHand.getType().getKey().getKey(); // e.g. "cactus", "oak_log"
+        if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) {
             return;
         }
 
-        // Cancel the event to prevent vanilla handling
+        // Cancel the event to prevent vanilla handling (bypasses sulfur_cube_swallowable tag)
         if (event instanceof PlayerInteractEntityEvent e) {
             e.setCancelled(true);
         } else if (event instanceof PlayerInteractAtEntityEvent e) {
