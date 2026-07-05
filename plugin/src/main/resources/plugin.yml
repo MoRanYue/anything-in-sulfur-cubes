@@ -1,0 +1,8 @@
+name: ${name}
+version: ${version}
+description: ${description}
+author: MoRanYue
+website: https://github.com/MoRanYue/anything-in-sulfur-cubes
+main: io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesPlugin
+api-version: 26.2
+folia-supported: true
