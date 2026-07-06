@@ -1,18 +1,15 @@
 package io.github.moranyue.anythinginsulfurcubes;
 
 import io.papermc.paper.registry.RegistryKey;
-import io.papermc.paper.registry.event.RegistryComposeEvent;
 import io.papermc.paper.registry.event.RegistryEvents;
 import io.papermc.paper.registry.keys.SulfurCubeArchetypeKeys;
 import io.papermc.paper.registry.set.RegistryKeySet;
 import io.papermc.paper.registry.set.RegistrySet;
 import io.papermc.paper.registry.TypedKey;
-import io.papermc.paper.registry.data.SulfurCubeArchetypeRegistryEntry;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import net.kyori.adventure.key.Key;
 import org.bukkit.entity.SulfurCube;
-import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.*;
 

@@ -3,8 +3,6 @@ package io.github.moranyue.anythinginsulfurcubes.config;
 import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.logging.Level;
-
 /**
  * Manages the plugin behavior configuration (config.yml).
  * <p>
