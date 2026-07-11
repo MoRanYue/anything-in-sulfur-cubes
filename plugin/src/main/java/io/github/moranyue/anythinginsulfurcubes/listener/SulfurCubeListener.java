@@ -1,6 +1,7 @@
 package io.github.moranyue.anythinginsulfurcubes.listener;
 
 import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesBootstrap;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.cubemob.SulfurCube;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Entity;
@@ -11,75 +12,73 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * Handles player interactions with Sulfur Cubes.
- * <p>
- * Vanilla Minecraft uses {@code isSwallowableItem()} which checks the
- * {@code minecraft:sulfur_cube_swallowable} item tag. This listener
- * bypasses that check by cancelling the vanilla interaction and
- * directly calling NMS {@code SulfurCube.equipItem()}.
- * <p>
- * Which items are acceptable is determined by the bootstrap-phase
- * archetype registry (see {@link AnythingInSulfurCubesBootstrap#hasArchetype}),
- * not by a runtime config file.
+ * <ul>
+ *   <li><b>With an item in hand:</b> bypasses the vanilla
+ *       {@code sulfur_cube_swallowable} tag check and directly calls
+ *       NMS {@code SulfurCube.equipItem()} to place the block.</li>
+ *   <li><b>With empty hand:</b> opens the container GUI if the cube
+ *       is carrying a chest, shulker box, or other container item.</li>
+ * </ul>
  */
 public class SulfurCubeListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         handleInteraction(event.getPlayer(), event.getRightClicked(), event);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         handleInteraction(event.getPlayer(), event.getRightClicked(), event);
     }
 
     private void handleInteraction(Player player, Entity clicked, Object event) {
-        // Check if the clicked entity is a SulfurCube
-        if (clicked.getType() != EntityType.SULFUR_CUBE) {
-            return;
-        }
+        if (clicked.getType() != EntityType.SULFUR_CUBE) return;
+
+        // Access NMS SulfurCube
+        CraftEntity craftEntity = (CraftEntity) clicked;
+        if (!(craftEntity.getHandle() instanceof SulfurCube nmsCube)) return;
 
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
+
         if (itemInHand.isEmpty() || itemInHand.getType().isAir()) {
+            // Empty hand → try to open container (chest, shulker box, etc.)
+            net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
+            if (!nmsBodyItem.isEmpty()) {
+                boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
+                if (opened) {
+                    if (event instanceof PlayerInteractEntityEvent e) {
+                        e.setCancelled(true);
+                    } else if (event instanceof PlayerInteractAtEntityEvent e) {
+                        e.setCancelled(true);
+                    }
+                }
+            }
             return;
         }
 
-        // Check if item has an archetype mapping in the bootstrap registry
-        String itemName = itemInHand.getType().getKey().getKey(); // e.g. "cactus", "oak_log"
-        if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) {
-            return;
-        }
+        // Item in hand → check if it has an archetype mapping
+        String itemName = itemInHand.getType().getKey().getKey();
+        if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) return;
 
-        // Cancel the event to prevent vanilla handling (bypasses sulfur_cube_swallowable tag)
+        // Cancel vanilla handling
         if (event instanceof PlayerInteractEntityEvent e) {
             e.setCancelled(true);
         } else if (event instanceof PlayerInteractAtEntityEvent e) {
             e.setCancelled(true);
         }
 
-        // Access NMS SulfurCube via CraftBukkit
-        CraftEntity craftEntity = (CraftEntity) clicked;
-        if (!(craftEntity.getHandle() instanceof SulfurCube nmsCube)) {
-            return;
-        }
-
-        // Use equipItem directly — it handles all logic internally:
-        // - baby check → returns false
-        // - hasBodyItem && same type → returns false
-        // - hasBodyItem && different type → drops existing, places new
-        // - no body item → places new
+        // Call equipItem to place the block in the cube
         net.minecraft.world.item.ItemStack nmsStack = net.minecraft.world.item.ItemStack.fromBukkitCopy(itemInHand);
         boolean success = nmsCube.equipItem(nmsStack);
 
         if (success) {
-            // Only consume item in survival/adventure mode (not creative/spectator)
             if (player.getGameMode() != org.bukkit.GameMode.CREATIVE
                 && player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
                 if (itemInHand.getAmount() <= 1) {
