@@ -1,9 +1,23 @@
 package io.github.moranyue.anythinginsulfurcubes.listener;
 
 import io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesBootstrap;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.cubemob.SulfurCube;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -13,6 +27,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
 /**
  * Handles player interactions with Sulfur Cubes.
@@ -32,11 +47,11 @@ public class SulfurCubeListener implements Listener {
         handleInteraction(event.getPlayer(), event.getRightClicked(), event);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
-        handleInteraction(event.getPlayer(), event.getRightClicked(), event);
-    }
+    // @EventHandler(priority = EventPriority.LOWEST)
+    // public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+    //     if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+    //     handleInteraction(event.getPlayer(), event.getRightClicked(), event);
+    // }
 
     private void handleInteraction(Player player, Entity clicked, Object event) {
         if (clicked.getType() != EntityType.SULFUR_CUBE) return;
@@ -46,36 +61,74 @@ public class SulfurCubeListener implements Listener {
         if (!(craftEntity.getHandle() instanceof SulfurCube nmsCube)) return;
 
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        net.minecraft.world.item.ItemStack nmsStack = net.minecraft.world.item.ItemStack.fromBukkitCopy(itemInHand);
 
-        if (itemInHand.isEmpty() || itemInHand.getType().isAir()) {
-            // Empty hand → try to open container (chest, shulker box, etc.)
-            net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
-            if (!nmsBodyItem.isEmpty()) {
-                boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
-                if (opened) {
+        ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+
+        net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
+        if (!nmsBodyItem.isEmpty()) {
+            // process shearing for chest
+            if (itemInHand.getType() == Material.SHEARS) {
+                if (nmsBodyItem.is(Items.CHEST)) {
                     if (event instanceof PlayerInteractEntityEvent e) {
                         e.setCancelled(true);
-                    } else if (event instanceof PlayerInteractAtEntityEvent e) {
-                        e.setCancelled(true);
+                    }
+
+                    if (nmsCube.level() instanceof ServerLevel level) {
+                        InteractionHand hand = switch (((PlayerInteractEntityEvent) event).getHand()) {
+                            case HAND -> InteractionHand.MAIN_HAND;
+                            case OFF_HAND -> InteractionHand.OFF_HAND;
+                            default -> throw new IllegalArgumentException("Unexpected equipment slot");
+                        };
+
+                        ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
+                        if (contents != null) {
+                            NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27,
+                                    net.minecraft.world.item.ItemStack.EMPTY);
+                            contents.copyInto(items);
+                            for (net.minecraft.world.item.ItemStack stack : items) {
+                                if (!stack.isEmpty()) {
+                                    Containers.dropItemStack(
+                                            level,
+                                            nmsCube.getX(),
+                                            nmsCube.getY(),
+                                            nmsCube.getZ(),
+                                            stack);
+                                }
+                            }
+
+                            nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                        }
+
+                        nmsCube.shear(level, SoundSource.PLAYERS, nmsStack);
+                        nmsCube.gameEvent(GameEvent.SHEAR, nmsPlayer);
+                        nmsStack.hurtAndBreak(1, nmsPlayer, hand);
+                        CriteriaTriggers.PLAYER_SHEARED_EQUIPMENT.trigger(nmsPlayer, nmsBodyItem, nmsCube);
                     }
                 }
+
+                return;
             }
+
+            boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
+            if (opened) {
+                if (event instanceof PlayerInteractEntityEvent e) {
+                    e.setCancelled(true);
+                }
+            }
+
             return;
         }
 
-        // Item in hand → check if it has an archetype mapping
         String itemName = itemInHand.getType().getKey().getKey();
         if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) return;
 
         // Cancel vanilla handling
         if (event instanceof PlayerInteractEntityEvent e) {
             e.setCancelled(true);
-        } else if (event instanceof PlayerInteractAtEntityEvent e) {
-            e.setCancelled(true);
         }
 
         // Call equipItem to place the block in the cube
-        net.minecraft.world.item.ItemStack nmsStack = net.minecraft.world.item.ItemStack.fromBukkitCopy(itemInHand);
         boolean success = nmsCube.equipItem(nmsStack);
 
         if (success) {
