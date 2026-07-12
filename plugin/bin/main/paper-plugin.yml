@@ -1,7 +1,0 @@
-name: AnythingInSulfurCubes
-version: '0.1.0'
-main: io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesPlugin
-description: Puts nearly any block in Sulfur Cubes
-api-version: '26.2'
-folia-supported: true
-bootstrapper: io.github.moranyue.anythinginsulfurcubes.AnythingInSulfurCubesBootstrap
