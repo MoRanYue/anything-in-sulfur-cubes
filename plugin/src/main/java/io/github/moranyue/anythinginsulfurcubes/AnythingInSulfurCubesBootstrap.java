@@ -193,7 +193,7 @@ public class AnythingInSulfurCubesBootstrap implements PluginBootstrap {
             "chest", "trapped_chest", "copper_chest",
             "exposed_copper_chest", "oxidized_copper_chest", "weathered_copper_chest",
             "waxed_copper_chest", "waxed_exposed_copper_chest",
-            "waxed_oxidized_copper_chest", "waxed_weathered_copper_chest");
+            "waxed_oxidized_copper_chest", "waxed_weathered_copper_chest", "barrel");
         // Shulker boxes (fast flat)
         add("FAST_FLAT", "shulker_box");
         for (String color : new String[]{"black", "blue", "brown", "cyan", "gray", "green",

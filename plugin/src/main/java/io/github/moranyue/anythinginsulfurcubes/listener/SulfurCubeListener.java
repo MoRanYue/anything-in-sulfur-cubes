@@ -11,6 +11,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.cubemob.SulfurCube;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
@@ -28,6 +29,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Material;
+import java.util.Set;
 
 /**
  * Handles player interactions with Sulfur Cubes.
@@ -40,6 +42,11 @@ import org.bukkit.Material;
  * </ul>
  */
 public class SulfurCubeListener implements Listener {
+    private static final Set<Item> CHEST_CONTAINERS = Set.of(
+                Items.CHEST,
+                Items.TRAPPED_CHEST,
+                Items.BARREL
+    );
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
@@ -69,7 +76,7 @@ public class SulfurCubeListener implements Listener {
         if (!nmsBodyItem.isEmpty()) {
             // process shearing for chest
             if (itemInHand.getType() == Material.SHEARS) {
-                if (nmsBodyItem.is(Items.CHEST)) {
+                if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
                     if (event instanceof PlayerInteractEntityEvent e) {
                         e.setCancelled(true);
                     }

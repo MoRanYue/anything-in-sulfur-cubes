@@ -3,6 +3,8 @@ package io.github.moranyue.anythinginsulfurcubes.listener;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -10,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -33,10 +36,39 @@ public final class ContainerOpenHelper {
             org.bukkit.entity.Player bukkitPlayer,
             net.minecraft.world.entity.monster.cubemob.SulfurCube nmsCube,
             ItemStack bodyItem) {
-        if (bodyItem.isEmpty()) return false;
+        if (bodyItem.isEmpty())
+            return false;
+
+        if (bodyItem.is(Items.ENDER_CHEST)) {
+            nmsCube.playSound(
+                    SoundEvents.ENDER_CHEST_OPEN,
+                    0.5F,
+                    1.0F);
+
+            return openEnderChest(bukkitPlayer);
+        }
+        else if (bodyItem.is(Items.CHEST) || bodyItem.is(Items.TRAPPED_CHEST)) {
+            nmsCube.playSound(
+                    SoundEvents.CHEST_OPEN,
+                    0.5F,
+                    1.0F);
+        }
+        else if (bodyItem.is(Items.BARREL)) {
+            nmsCube.playSound(
+                    SoundEvents.BARREL_OPEN,
+                    0.5F,
+                    1.0F);
+        }
+        else if (bodyItem.is(ItemTags.SHULKER_BOXES)) {
+            nmsCube.playSound(
+                    SoundEvents.SHULKER_BOX_OPEN,
+                    0.5F,
+                    1.0F);
+        }
 
         ItemContainerContents contents = bodyItem.get(DataComponents.CONTAINER);
-        if (contents == null) return false;
+        if (contents == null)
+            return false;
 
         int size = 27;
         int rows = size / 9;
@@ -51,7 +83,8 @@ public final class ContainerOpenHelper {
 
         Component title = bodyItem.getHoverName();
         MenuType<?> menuType = getMenuType(rows);
-        if (menuType == null) return false;
+        if (menuType == null)
+            return false;
 
         Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
 
@@ -66,6 +99,32 @@ public final class ContainerOpenHelper {
             public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
                     int containerId, Inventory inv, Player player) {
                 return new ChestMenu(menuType, containerId, inv, container, rows);
+            }
+        });
+
+        return true;
+    }
+    
+    private static boolean openEnderChest(org.bukkit.entity.Player bukkitPlayer) {
+        Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
+
+        nmsPlayer.openMenu(new net.minecraft.world.MenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return Component.translatable("container.enderchest");
+            }
+
+            @Override
+            public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
+                    int containerId,
+                    Inventory playerInventory,
+                    Player player) {
+
+                return ChestMenu.threeRows(
+                        containerId,
+                        playerInventory,
+                        player.getEnderChestInventory()
+                );
             }
         });
 
