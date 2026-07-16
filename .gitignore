@@ -7,10 +7,9 @@ node_modules/
 .gradle/
 plugin/.gradle/
 plugin/build/
-plugin/gradlew
-plugin/gradlew.bat
 plugin/gradle/wrapper/gradle-wrapper.jar
 plugin/gradle/wrapper/gradle-wrapper.properties
+plugin/bin
 
 # IDE
 .idea/
