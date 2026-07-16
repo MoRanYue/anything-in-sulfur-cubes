@@ -9,8 +9,16 @@ import io.papermc.paper.registry.TypedKey;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import net.kyori.adventure.key.Key;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
+import io.papermc.paper.tag.TagEntry;
+import org.bukkit.inventory.ItemType;
+import net.kyori.adventure.key.Key;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import org.bukkit.entity.SulfurCube;
-
 import java.util.*;
 
 /**
@@ -47,6 +55,30 @@ public class AnythingInSulfurCubesBootstrap implements PluginBootstrap {
                     .filter(archetypeKey)
             );
         }
+
+        context.getLifecycleManager().registerEventHandler(
+            LifecycleEvents.TAGS.preFlatten(RegistryKey.ITEM),
+            event -> {
+                var registrar = event.registrar();
+
+                List<TagEntry<ItemType>> entries = new ArrayList<>();
+
+                for (Set<String> itemNames : ARCHETYPE_ITEMS.values()) {
+                    for (String itemName : itemNames) {
+                        entries.add(
+                            TagEntry.valueEntry(
+                                TypedKey.create(RegistryKey.ITEM, Key.key("minecraft", itemName))
+                            )
+                        );
+                    }
+                }
+
+                registrar.addToTag(
+                    TagKey.create(RegistryKey.ITEM, "minecraft:sulfur_cube_swallowable"),
+                    entries
+                );
+            }
+        );
     }
 
     @Override

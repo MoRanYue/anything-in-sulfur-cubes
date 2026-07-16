@@ -127,27 +127,27 @@ public class SulfurCubeListener implements Listener {
             return;
         }
 
-        String itemName = itemInHand.getType().getKey().getKey();
-        if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) return;
+        // String itemName = itemInHand.getType().getKey().getKey();
+        // if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) return;
 
-        // Cancel vanilla handling
-        if (event instanceof PlayerInteractEntityEvent e) {
-            e.setCancelled(true);
-        }
+        // // Cancel vanilla handling
+        // if (event instanceof PlayerInteractEntityEvent e) {
+        //     e.setCancelled(true);
+        // }
 
-        // Call equipItem to place the block in the cube
-        boolean success = nmsCube.equipItem(nmsStack);
+        // // Call equipItem to place the block in the cube
+        // boolean success = nmsCube.equipItem(nmsStack);
 
-        if (success) {
-            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE
-                && player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
-                if (itemInHand.getAmount() <= 1) {
-                    player.getInventory().setItemInMainHand(null);
-                } else {
-                    itemInHand.setAmount(itemInHand.getAmount() - 1);
-                    player.getInventory().setItemInMainHand(itemInHand);
-                }
-            }
-        }
+        // if (success) {
+        //     if (player.getGameMode() != org.bukkit.GameMode.CREATIVE
+        //         && player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
+        //         if (itemInHand.getAmount() <= 1) {
+        //             player.getInventory().setItemInMainHand(null);
+        //         } else {
+        //             itemInHand.setAmount(itemInHand.getAmount() - 1);
+        //             player.getInventory().setItemInMainHand(itemInHand);
+        //         }
+        //     }
+        // }
     }
 }
