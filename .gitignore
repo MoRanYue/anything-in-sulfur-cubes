@@ -9,7 +9,7 @@ plugin/.gradle/
 plugin/build/
 plugin/gradle/wrapper/gradle-wrapper.jar
 plugin/gradle/wrapper/gradle-wrapper.properties
-plugin/bin
+plugin/bin/
 
 # IDE
 .idea/
