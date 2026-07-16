@@ -1,17 +1,7 @@
-# Anything in Sulfur Cubes
+# Anything In Sulfur Cubes Paper
 
-Allows you to put nearly **any** block in Sulfur Cubes, with each having fitting properties, instead of the very limited selection in vanilla!
-You can even store your shulkers in Sulfur Cubes and your items will not be lost!
+A Paper/Folia plugin which allows sulfur cubes to equip almost anything blocks except minor number of blocks such as slabs.
 
-### What blocks are added:
+It also added a few features to make it more reasonable and fun.
 
-Blocks, which mostly fill the sides of the cube (slabs ❌, composter ✅)
-
-## Feature Requests
-
-If you want a block to be changed (or added, if I haven't already), you can [open an issue](https://github.com/lugosieben/anything-in-sulfur-cubes/issues) and i will look at it as soon as possible!
-
-## Transparency Fix
-
-Putting transparent blocks in Sulfur Cubes is possible, but will result in a weird appearance.
-To fix this, you can optionally download the [Sulfur Cube Transparency Fix](https://modrinth.com/resourcepack/sulfur-cube-transparency-fix) Resource Pack.
+Plugin source is in `plugin` directory.
