@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -65,14 +66,18 @@ public final class ContainerOpenHelper {
                     0.5F,
                     1.0F);
         }
+        else if (bodyItem.is(Items.HOPPER)) {
+            return openHopper(bukkitPlayer, nmsCube, bodyItem);
+        }
 
         ItemContainerContents contents = bodyItem.get(DataComponents.CONTAINER);
         if (contents == null)
             return false;
 
-        int size = 27;
-        int rows = size / 9;
+        Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
 
+        int size = 27;
+        int rows = 3;
         // Create container and populate with current items
         SaveOnCloseContainer container = new SaveOnCloseContainer(size, bodyItem.copy(), nmsCube);
         NonNullList<ItemStack> items = NonNullList.withSize(size, ItemStack.EMPTY);
@@ -85,8 +90,6 @@ public final class ContainerOpenHelper {
         MenuType<?> menuType = getMenuType(rows);
         if (menuType == null)
             return false;
-
-        Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
 
         Component finalTitle = title;
         nmsPlayer.openMenu(new net.minecraft.world.MenuProvider() {
@@ -127,6 +130,74 @@ public final class ContainerOpenHelper {
                 );
             }
         });
+
+        return true;
+    }
+
+    private static boolean openHopper(
+            org.bukkit.entity.Player bukkitPlayer,
+            net.minecraft.world.entity.monster.cubemob.SulfurCube nmsCube,
+            ItemStack bodyItem
+    ) {
+        Player nmsPlayer =
+                ((CraftPlayer) bukkitPlayer).getHandle();
+
+        ItemContainerContents contents =
+                bodyItem.getOrDefault(
+                        DataComponents.CONTAINER,
+                        ItemContainerContents.EMPTY
+                );
+
+
+        SaveOnCloseContainer container =
+                new SaveOnCloseContainer(
+                        5,
+                        bodyItem.copy(),
+                        nmsCube
+                );
+
+
+        NonNullList<ItemStack> items =
+                NonNullList.withSize(
+                        5,
+                        ItemStack.EMPTY
+                );
+
+
+        contents.copyInto(items);
+
+
+        for (int i = 0; i < 5; i++) {
+            container.setItem(
+                    i,
+                    items.get(i)
+            );
+        }
+
+        nmsPlayer.openMenu(
+                new net.minecraft.world.MenuProvider() {
+
+                    @Override
+                    public Component getDisplayName() {
+                        return Component.translatable("container.hopper");
+                    }
+
+
+                    @Override
+                    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
+                            int containerId,
+                            Inventory inventory,
+                            Player player
+                    ) {
+
+                        return new net.minecraft.world.inventory.HopperMenu(
+                                containerId,
+                                inventory,
+                                container
+                        );
+                    }
+                }
+        );
 
         return true;
     }

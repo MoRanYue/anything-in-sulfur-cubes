@@ -45,7 +45,8 @@ public class SulfurCubeListener implements Listener {
     private static final Set<Item> CHEST_CONTAINERS = Set.of(
                 Items.CHEST,
                 Items.TRAPPED_CHEST,
-                Items.BARREL
+                Items.BARREL,
+                Items.HOPPER
     );
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -61,7 +62,7 @@ public class SulfurCubeListener implements Listener {
     // }
 
     private void handleInteraction(Player player, Entity clicked, Object event) {
-        if (clicked.getType() != EntityType.SULFUR_CUBE) return;
+        if (clicked.getType() != EntityType.SULFUR_CUBE || player.isSneaking()) return;
 
         // Access NMS SulfurCube
         CraftEntity craftEntity = (CraftEntity) clicked;
