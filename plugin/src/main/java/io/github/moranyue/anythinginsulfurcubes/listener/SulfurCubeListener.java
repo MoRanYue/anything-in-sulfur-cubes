@@ -25,6 +25,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -42,12 +43,49 @@ import java.util.Set;
  * </ul>
  */
 public class SulfurCubeListener implements Listener {
-    private static final Set<Item> CHEST_CONTAINERS = Set.of(
+    public static final Set<Item> CHEST_CONTAINERS = Set.of(
                 Items.CHEST,
                 Items.TRAPPED_CHEST,
                 Items.BARREL,
                 Items.HOPPER
     );
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSulfurCubeDeath(EntityDeathEvent event) {
+        if (event.getEntityType() != EntityType.SULFUR_CUBE) return;
+
+        CraftEntity craftEntity = (CraftEntity) event.getEntity();
+        if (!(craftEntity.getHandle() instanceof SulfurCube nmsCube)) return;
+
+        net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
+        if (nmsBodyItem.isEmpty()) {
+            return;
+        }
+        
+        if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
+            if (nmsCube.level() instanceof ServerLevel level) {
+                ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
+                if (contents == null) {
+                    return;
+                }
+
+                NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                contents.copyInto(items);
+                for (net.minecraft.world.item.ItemStack stack : items) {
+                    if (!stack.isEmpty()) {
+                        Containers.dropItemStack(
+                                level,
+                                nmsCube.getX(),
+                                nmsCube.getY(),
+                                nmsCube.getZ(),
+                                stack);
+                    }
+                }
+
+                nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+            }
+        }
+    }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
@@ -91,8 +129,7 @@ public class SulfurCubeListener implements Listener {
 
                         ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
                         if (contents != null) {
-                            NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27,
-                                    net.minecraft.world.item.ItemStack.EMPTY);
+                            NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
                             contents.copyInto(items);
                             for (net.minecraft.world.item.ItemStack stack : items) {
                                 if (!stack.isEmpty()) {

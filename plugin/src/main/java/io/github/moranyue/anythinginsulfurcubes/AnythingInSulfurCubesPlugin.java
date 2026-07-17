@@ -2,9 +2,13 @@ package io.github.moranyue.anythinginsulfurcubes;
 
 import io.github.moranyue.anythinginsulfurcubes.config.PluginConfig;
 import io.github.moranyue.anythinginsulfurcubes.listener.SulfurCubeListener;
+import io.github.moranyue.anythinginsulfurcubes.listener.SulfurCubeShearBehavior;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.CactusBehavior;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.CreakingHeartBehavior;
 import io.github.moranyue.anythinginsulfurcubes.scheduler.PotentSulfurBehavior;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.DispenserBlock;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -55,6 +59,8 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(
             new SulfurCubeListener(), this);
+        
+        DispenserBlock.registerBehavior(Items.SHEARS, new SulfurCubeShearBehavior());
     }
 
     private void startBehaviors() {
