@@ -52,6 +52,7 @@ public final class AnythingInSulfurCubesPlugin extends JavaPlugin {
         if (cactusBehavior != null) cactusBehavior.cancel();
         if (creakingHeartBehavior != null) creakingHeartBehavior.cancel();
         if (potentSulfurBehavior != null) potentSulfurBehavior.cancel();
+        DispenserBlock.registerBehavior(Items.SHEARS, DispenserBlock.DISPENSER_REGISTRY.get(Items.SHEARS));
 
         getLogger().info("Anything in Sulfur Cubes disabled.");
     }

@@ -7,6 +7,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -112,80 +113,77 @@ public class SulfurCubeListener implements Listener {
         ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
 
         net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
-        if (!nmsBodyItem.isEmpty()) {
-            // process shearing for chest
-            if (itemInHand.getType() == Material.SHEARS) {
-                if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
-                    if (event instanceof PlayerInteractEntityEvent e) {
-                        e.setCancelled(true);
-                    }
+        if (nmsBodyItem.isEmpty()) {
+            return;
+        }
 
-                    if (nmsCube.level() instanceof ServerLevel level) {
-                        InteractionHand hand = switch (((PlayerInteractEntityEvent) event).getHand()) {
-                            case HAND -> InteractionHand.MAIN_HAND;
-                            case OFF_HAND -> InteractionHand.OFF_HAND;
-                            default -> throw new IllegalArgumentException("Unexpected equipment slot");
-                        };
-
-                        ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
-                        if (contents != null) {
-                            NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
-                            contents.copyInto(items);
-                            for (net.minecraft.world.item.ItemStack stack : items) {
-                                if (!stack.isEmpty()) {
-                                    Containers.dropItemStack(
-                                            level,
-                                            nmsCube.getX(),
-                                            nmsCube.getY(),
-                                            nmsCube.getZ(),
-                                            stack);
-                                }
-                            }
-
-                            nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-                        }
-
-                        nmsCube.shear(level, SoundSource.PLAYERS, nmsStack);
-                        nmsCube.gameEvent(GameEvent.SHEAR, nmsPlayer);
-                        nmsStack.hurtAndBreak(1, nmsPlayer, hand);
-                        CriteriaTriggers.PLAYER_SHEARED_EQUIPMENT.trigger(nmsPlayer, nmsBodyItem, nmsCube);
-                    }
-                }
-
-                return;
-            }
-
-            boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
-            if (opened) {
+        // p[rocess shearing for chest
+        if (itemInHand.getType() == Material.SHEARS) {
+            if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
                 if (event instanceof PlayerInteractEntityEvent e) {
                     e.setCancelled(true);
+                }
+
+                if (nmsCube.level() instanceof ServerLevel level) {
+                    InteractionHand hand = switch (((PlayerInteractEntityEvent) event).getHand()) {
+                        case HAND -> InteractionHand.MAIN_HAND;
+                        case OFF_HAND -> InteractionHand.OFF_HAND;
+                        default -> throw new IllegalArgumentException("Unexpected equipment slot");
+                    };
+
+                    ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
+                    if (contents != null) {
+                        NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                        contents.copyInto(items);
+                        for (net.minecraft.world.item.ItemStack stack : items) {
+                            if (!stack.isEmpty()) {
+                                Containers.dropItemStack(
+                                        level,
+                                        nmsCube.getX(),
+                                        nmsCube.getY(),
+                                        nmsCube.getZ(),
+                                        stack);
+                            }
+                        }
+
+                        nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                    }
+
+                    nmsCube.shear(level, SoundSource.PLAYERS, nmsStack);
+                    nmsCube.gameEvent(GameEvent.SHEAR, nmsPlayer);
+                    nmsStack.hurtAndBreak(1, nmsPlayer, hand);
+                    CriteriaTriggers.PLAYER_SHEARED_EQUIPMENT.trigger(nmsPlayer, nmsBodyItem, nmsCube);
                 }
             }
 
             return;
+        } else if (nmsStack.is(ItemTags.SULFUR_CUBE_SWALLOWABLE) && CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
+            if (nmsCube.level() instanceof ServerLevel level) {
+                ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
+                if (contents != null) {
+                    NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                    contents.copyInto(items);
+                    for (net.minecraft.world.item.ItemStack stack : items) {
+                        if (!stack.isEmpty()) {
+                            Containers.dropItemStack(
+                                    level,
+                                    nmsCube.getX(),
+                                    nmsCube.getY(),
+                                    nmsCube.getZ(),
+                                    stack);
+                        }
+                    }
+
+                    nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                }
+            }
         }
 
-        // String itemName = itemInHand.getType().getKey().getKey();
-        // if (!AnythingInSulfurCubesBootstrap.hasArchetype(itemName)) return;
-
-        // // Cancel vanilla handling
-        // if (event instanceof PlayerInteractEntityEvent e) {
-        //     e.setCancelled(true);
-        // }
-
-        // // Call equipItem to place the block in the cube
-        // boolean success = nmsCube.equipItem(nmsStack);
-
-        // if (success) {
-        //     if (player.getGameMode() != org.bukkit.GameMode.CREATIVE
-        //         && player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
-        //         if (itemInHand.getAmount() <= 1) {
-        //             player.getInventory().setItemInMainHand(null);
-        //         } else {
-        //             itemInHand.setAmount(itemInHand.getAmount() - 1);
-        //             player.getInventory().setItemInMainHand(itemInHand);
-        //         }
-        //     }
-        // }
+        boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
+        if (opened) {
+            if (event instanceof PlayerInteractEntityEvent e) {
+                e.setCancelled(true);
+            }
+        }
     }
 }
