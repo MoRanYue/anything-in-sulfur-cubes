@@ -69,6 +69,9 @@ public final class ContainerOpenHelper {
         else if (bodyItem.is(Items.HOPPER)) {
             return openHopper(bukkitPlayer, nmsCube, bodyItem);
         }
+        else if (bodyItem.is(Items.DROPPER) || bodyItem.is(Items.DISPENSER)) {
+            return openDispenserOrDropper(bukkitPlayer, nmsCube, bodyItem);
+        }
 
         ItemContainerContents contents = bodyItem.get(DataComponents.CONTAINER);
         if (contents == null)
@@ -139,8 +142,7 @@ public final class ContainerOpenHelper {
             net.minecraft.world.entity.monster.cubemob.SulfurCube nmsCube,
             ItemStack bodyItem
     ) {
-        Player nmsPlayer =
-                ((CraftPlayer) bukkitPlayer).getHandle();
+        Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
 
         ItemContainerContents contents =
                 bodyItem.getOrDefault(
@@ -148,26 +150,24 @@ public final class ContainerOpenHelper {
                         ItemContainerContents.EMPTY
                 );
 
+        int size = 5;
 
         SaveOnCloseContainer container =
                 new SaveOnCloseContainer(
-                        5,
+                        size,
                         bodyItem.copy(),
                         nmsCube
                 );
 
-
         NonNullList<ItemStack> items =
                 NonNullList.withSize(
-                        5,
+                        size,
                         ItemStack.EMPTY
                 );
 
-
         contents.copyInto(items);
 
-
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < size; i++) {
             container.setItem(
                     i,
                     items.get(i)
@@ -198,6 +198,72 @@ public final class ContainerOpenHelper {
                     }
                 }
         );
+
+        return true;
+    }
+
+    private static boolean openDispenserOrDropper(
+            org.bukkit.entity.Player bukkitPlayer,
+            net.minecraft.world.entity.monster.cubemob.SulfurCube nmsCube,
+            ItemStack bodyItem
+    ) {
+        Player nmsPlayer = ((CraftPlayer) bukkitPlayer).getHandle();
+
+        ItemContainerContents contents =
+                bodyItem.getOrDefault(
+                        DataComponents.CONTAINER,
+                        ItemContainerContents.EMPTY
+                );
+
+        int size = 9;
+        SaveOnCloseContainer container =
+                new SaveOnCloseContainer(
+                        size,
+                        bodyItem.copy(),
+                        nmsCube
+                );
+
+        NonNullList<ItemStack> items =
+                NonNullList.withSize(
+                        size,
+                        ItemStack.EMPTY
+                );
+
+        contents.copyInto(items);
+
+        for (int i = 0; i < size; i++) {
+            container.setItem(
+                    i,
+                    items.get(i)
+            );
+        }
+
+        Component title = bodyItem.getHoverName();
+        nmsPlayer.openMenu(
+                new net.minecraft.world.MenuProvider() {
+
+                    @Override
+                    public Component getDisplayName() {
+                        return title;
+                    }
+
+
+                    @Override
+                    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
+                            int containerId,
+                            Inventory inventory,
+                            Player player
+                    ) {
+
+                        return new net.minecraft.world.inventory.DispenserMenu(
+                                containerId,
+                                inventory,
+                                container
+                        );
+                    }
+                }
+        );
+
 
         return true;
     }

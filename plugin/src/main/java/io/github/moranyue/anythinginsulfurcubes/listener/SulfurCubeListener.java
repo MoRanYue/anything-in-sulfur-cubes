@@ -48,7 +48,9 @@ public class SulfurCubeListener implements Listener {
                 Items.CHEST,
                 Items.TRAPPED_CHEST,
                 Items.BARREL,
-                Items.HOPPER
+                Items.HOPPER,
+                Items.DISPENSER,
+                Items.DROPPER
     );
 
     @EventHandler(priority = EventPriority.LOWEST)
