@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.moranyue"
-version = "0.1.0+26.2"
+version = "0.2.0+26.2"
 
 repositories {
     mavenCentral()
