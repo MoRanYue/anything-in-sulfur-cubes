@@ -238,13 +238,14 @@ public final class ContainerOpenHelper {
             );
         }
 
-        Component title = bodyItem.getHoverName();
         nmsPlayer.openMenu(
                 new net.minecraft.world.MenuProvider() {
 
                     @Override
                     public Component getDisplayName() {
-                        return title;
+                        return bodyItem.is(Items.DISPENSER)
+                            ? Component.translatable("container.dispenser")
+                            : Component.translatable("container.dropper");
                     }
 
 

@@ -72,7 +72,7 @@ public class SulfurCubeListener implements Listener {
                     return;
                 }
 
-                NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27, net.minecraft.world.item.ItemStack.EMPTY);
                 contents.copyInto(items);
                 for (net.minecraft.world.item.ItemStack stack : items) {
                     if (!stack.isEmpty()) {
@@ -103,7 +103,7 @@ public class SulfurCubeListener implements Listener {
     // }
 
     private void handleInteraction(Player player, Entity clicked, Object event) {
-        if (clicked.getType() != EntityType.SULFUR_CUBE || player.isSneaking()) return;
+        if (clicked.getType() != EntityType.SULFUR_CUBE) return;
 
         // Access NMS SulfurCube
         CraftEntity craftEntity = (CraftEntity) clicked;
@@ -115,27 +115,12 @@ public class SulfurCubeListener implements Listener {
         ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
 
         net.minecraft.world.item.ItemStack nmsBodyItem = nmsCube.getItemBySlot(EquipmentSlot.BODY);
-        if (nmsBodyItem.isEmpty()) {
-            return;
-        }
-
-        // p[rocess shearing for chest
-        if (itemInHand.getType() == Material.SHEARS) {
-            if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
-                if (event instanceof PlayerInteractEntityEvent e) {
-                    e.setCancelled(true);
-                }
-
-                if (nmsCube.level() instanceof ServerLevel level) {
-                    InteractionHand hand = switch (((PlayerInteractEntityEvent) event).getHand()) {
-                        case HAND -> InteractionHand.MAIN_HAND;
-                        case OFF_HAND -> InteractionHand.OFF_HAND;
-                        default -> throw new IllegalArgumentException("Unexpected equipment slot");
-                    };
-
+        if (player.isSneaking()) {
+            if (CHEST_CONTAINERS.contains(nmsBodyItem.getItem()) && nmsCube.level() instanceof ServerLevel level) {
+                if (itemInHand.getType() == Material.SHEARS) {
                     ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
                     if (contents != null) {
-                        NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                        NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27, net.minecraft.world.item.ItemStack.EMPTY);
                         contents.copyInto(items);
                         for (net.minecraft.world.item.ItemStack stack : items) {
                             if (!stack.isEmpty()) {
@@ -150,41 +135,36 @@ public class SulfurCubeListener implements Listener {
 
                         nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
                     }
-
-                    nmsCube.shear(level, SoundSource.PLAYERS, nmsStack);
-                    nmsCube.gameEvent(GameEvent.SHEAR, nmsPlayer);
-                    nmsStack.hurtAndBreak(1, nmsPlayer, hand);
-                    CriteriaTriggers.PLAYER_SHEARED_EQUIPMENT.trigger(nmsPlayer, nmsBodyItem, nmsCube);
                 }
-            }
-
-            return;
-        } else if (nmsStack.is(ItemTags.SULFUR_CUBE_SWALLOWABLE) && CHEST_CONTAINERS.contains(nmsBodyItem.getItem())) {
-            if (nmsCube.level() instanceof ServerLevel level) {
-                ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
-                if (contents != null) {
-                    NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
-                    contents.copyInto(items);
-                    for (net.minecraft.world.item.ItemStack stack : items) {
-                        if (!stack.isEmpty()) {
-                            Containers.dropItemStack(
-                                    level,
-                                    nmsCube.getX(),
-                                    nmsCube.getY(),
-                                    nmsCube.getZ(),
-                                    stack);
+                else if (nmsStack.is(ItemTags.SULFUR_CUBE_SWALLOWABLE)) {
+                    ItemContainerContents contents = nmsBodyItem.get(DataComponents.CONTAINER);
+                    if (contents != null) {
+                        NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27, net.minecraft.world.item.ItemStack.EMPTY);
+                        contents.copyInto(items);
+                        for (net.minecraft.world.item.ItemStack stack : items) {
+                            if (!stack.isEmpty()) {
+                                Containers.dropItemStack(
+                                        level,
+                                        nmsCube.getX(),
+                                        nmsCube.getY(),
+                                        nmsCube.getZ(),
+                                        stack);
+                            }
                         }
-                    }
 
-                    nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                        nmsBodyItem.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                    }
                 }
+
+                return;
             }
         }
-
-        boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
-        if (opened) {
-            if (event instanceof PlayerInteractEntityEvent e) {
-                e.setCancelled(true);
+        else {
+            boolean opened = ContainerOpenHelper.tryOpenContainer(player, nmsCube, nmsBodyItem);
+            if (opened) {
+                if (event instanceof PlayerInteractEntityEvent e) {
+                    e.setCancelled(true);
+                }
             }
         }
     }

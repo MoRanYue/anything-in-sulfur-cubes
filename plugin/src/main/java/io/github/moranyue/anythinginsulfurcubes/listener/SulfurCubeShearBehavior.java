@@ -44,7 +44,7 @@ public class SulfurCubeShearBehavior implements DispenseItemBehavior {
                     continue;
                 }
 
-                NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.create();
+                NonNullList<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(27, ItemStack.EMPTY);
                 contents.copyInto(items);
                 for (net.minecraft.world.item.ItemStack stack : items) {
                     if (!stack.isEmpty()) {
